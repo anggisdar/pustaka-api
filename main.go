@@ -17,5 +17,13 @@ func main() {
 		})
 	})
 
-	router.Run()
+	router.GET("/hello", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"Content":  "Perubahan kecil",
+			"subtitle": "Belajar Golang bareng Agung Setiawan",
+		})
+	})
+
+	//port 8080
+	router.Run("8000")
 }
