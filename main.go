@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ func rootHandler(c *gin.Context) {
 func helloHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"Content":  "Perubahan kecil",
-		"subtitle": "Belajar Golang bareng Agung Setiawan",
+		"subtitle": "golang the best language",
 	})
 }
 
@@ -71,9 +71,9 @@ func queryHandler(c *gin.Context) {
 
 // post & binding json
 type BookInput struct { // struct
-	Title    string
-	Price    int
-	Subtitle string `json:"sub_title"` // alias
+	Title    string `json:"title" binding:"required"`        // apabila required tidak terpenuhi maka sever akan berhenti
+	Price    int    `json:"price" binding:"required,number"` // int "required,number"
+	Subtitle string `json:"sub_title"`                       // alias
 }
 
 func PostBooksHandler(c *gin.Context) {
@@ -81,7 +81,9 @@ func PostBooksHandler(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&bookInput)
 	if err != nil {
-		log.Fatal(err)
+		c.JSON(http.StatusBadRequest, err)
+		fmt.Println(err)
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -91,3 +93,5 @@ func PostBooksHandler(c *gin.Context) {
 	})
 
 }
+
+// http post & json upload
