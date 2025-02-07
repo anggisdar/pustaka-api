@@ -1,20 +1,24 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
 	router := gin.Default()
 
-	router.GET("/", rootHandler) // root url yang berisi JSON
-	router.GET("/hello", helloHandler)
-	router.GET("/books/:id/:title", booksHandler)
-	router.GET("/query", queryHandler)
-	router.POST("/books", PostBooksHandler)
+	v1 := router.Group("v1") // versioning
+
+	v1.GET("/", rootHandler) // root url yang berisi JSON
+	v1.GET("/hello", helloHandler)
+	v1.GET("/books/:id/:title", booksHandler)
+	v1.GET("/query", queryHandler)
+	v1.POST("/books", PostBooksHandler)
 
 	// // root url "/"
 	// router.GET("/", func(c *gin.Context) {
@@ -71,9 +75,9 @@ func queryHandler(c *gin.Context) {
 
 // post & binding json
 type BookInput struct { // struct
-	Title    string `json:"title" binding:"required"`        // apabila required tidak terpenuhi maka sever akan berhenti
-	Price    int    `json:"price" binding:"required,number"` // int "required,number"
-	Subtitle string `json:"sub_title"`                       // alias
+	Title    string      `json:"title" binding:"required"`        // apabila required tidak terpenuhi maka sever akan berhenti
+	Price    json.Number `json:"price" binding:"required,number"` // int "required,number" // json.Number support int "10" "bukanini"
+	Subtitle string      `json:"sub_title"`                       // alias
 }
 
 func PostBooksHandler(c *gin.Context) {
@@ -81,9 +85,18 @@ func PostBooksHandler(c *gin.Context) {
 
 	err := c.ShouldBindJSON(&bookInput)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, err)
-		fmt.Println(err)
+
+		errorMessages := []string{} //slice
+		for _, e := range err.(validator.ValidationErrors) {
+			errorMessage := fmt.Sprintf("Error on filed %s, condition: %s", e.Field(), e.ActualTag()) // menampilan error message
+			errorMessages = append(errorMessages, errorMessage)                                       // append
+			// fmt.Println(err)
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"errors": errorMessages,
+		})
 		return
+
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -93,5 +106,3 @@ func PostBooksHandler(c *gin.Context) {
 	})
 
 }
-
-// http post & json upload
