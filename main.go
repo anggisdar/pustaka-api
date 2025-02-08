@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
+	"github.com/anggisdar/pustaka-api/book"
 	"github.com/anggisdar/pustaka-api/handler"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -13,12 +13,13 @@ import (
 func main() {
 	router := gin.Default()
 	dsn := "root:05072001@(127.0.0.1:3306)/pustaka_api?charset=utf8mb4&parseTime=True&loc=Local"
-	_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Db connection error")
 	}
 
-	fmt.Println("Database connection succed")
+	db.AutoMigrate(&book.Book{}) // table auto
+	// fmt.Println("Database connection succed")
 
 	v1 := router.Group("v1") // versioning
 
